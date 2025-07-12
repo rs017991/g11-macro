@@ -1,0 +1,19 @@
+[package]
+name = "g11-macro-keys"
+description = "USB/HID model for the Logitech G11 Keyboard's macro keys"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+authors.workspace = true
+keywords.workspace = true
+license.workspace = true
+
+
+[dependencies]
+bitflags.workspace = true
+derive_more = { workspace = true, features = ["error", "display"] }
+
+
+[dev-dependencies]
+hidapi.workspace = true

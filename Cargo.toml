@@ -1,0 +1,41 @@
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.77"
+repository = "https://github.com/rs017991/g11-macro"
+authors = ["Ryan Scheidter <ryan.scheidter@gmail.com>"]
+keywords = ["g11", "logitech", "keyboard"]
+license = "MIT"
+
+[workspace]
+resolver = "2"
+members = [
+	# Library
+	"g11-macro-keys",
+
+	# Binary
+	"g11-macro-daemon",
+]
+
+
+[workspace.dependencies]
+hidapi = "2.6"
+enigo = { version = "0.3.*", default-features = false }
+xdg = "3.0"
+
+log = { version = "0.4.*" }
+env_logger = { version = "0.11.*", default-features = false }
+
+serde = "1.0"
+ron = "0.10.*"
+
+bitflags = "2.9"
+derive_more.version = "2.0"
+smallvec = "1.15"
+
+
+[profile.release]
+opt-level = 3
+debug = false
+codegen-units = 1
+lto = "fat"
