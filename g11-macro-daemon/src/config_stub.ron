@@ -9,6 +9,16 @@
 /*
 KeyBinding(
     m: 1,
+    g: 15,
+    on: Press,
+    script: [
+        Key(Control, Press),
+        Key(Unicode('w'), Click),
+        Key(Control, Release),
+    ],
+),
+KeyBinding(
+    m: 1,
     g: 17,
     on: Press,
     script: [

@@ -16,7 +16,7 @@ systemctl --user restart g11-macro-daemon
 ## Defining macros
 
 Within `key_bindings.ron`, you may create an entry for each individual 'G' key you wish to program.
-* The overall format of the file is a [ron](https://docs.rs/ron/latest/ron) List of [KeyBinding](https://docs.rs/g11_macro_daemon/latest/config/struct.KeyBinding.html) entries.
+* The overall format of the file is a [ron](https://docs.rs/ron/latest/ron) List of [KeyBinding](https://github.com/rs017991/g11-macro/blob/eaba13e0adfa73fa4d0023d55426d748caa84b30/g11-macro-daemon/src/config.rs#L21-L30) entries.
 * If more than one entry is defined for a given M/G combination, only the last one will be used.
 
 Consider the following example, which programs the G13 key in the M1 bank to simulate Ctrl+w:
@@ -56,5 +56,12 @@ KeyBinding(
   ```
 * You can inspect the service logs by running:
   ```bash
-  journalctl --user -u g11-macro-daemon
+  journalctl --user -u g11-macro-daemon -r
   ```
+  * `-r` reverses the order, so newest lines are on top.
+  * Keep an eye out for any line like _"Unable to load config: Parsing"_.
+    This indicates that there is a mistake in your config file. Study the line to understand where the problem lies.
+    You might have to scroll to the right to see the full line.
+* Tip: If you are working through problems with your bindings,
+  it may be more convenient to execute the binary directly at `~/.config/bin/g11-macro-daemon` in your terminal foreground,
+  rather than constantly restarting the service and having to pull up the logs.
