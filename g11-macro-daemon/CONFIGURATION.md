@@ -63,5 +63,5 @@ KeyBinding(
     This indicates that there is a mistake in your config file. Study the line to understand where the problem lies.
     You might have to scroll to the right to see the full line.
 * Tip: If you are working through problems with your bindings,
-  it may be more convenient to execute the binary directly at `~/.config/bin/g11-macro-daemon` in your terminal foreground,
+  it may be more convenient to execute the binary directly at `~/.cargo/bin/g11-macro-daemon` in your terminal foreground,
   rather than constantly restarting the service and having to pull up the logs.
