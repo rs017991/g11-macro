@@ -35,7 +35,7 @@ KeyBinding(
 Note that when scripting modifier keys like Control/Shift/etc., you should include a step for each to be released at the end.
 
 While keystrokes are the most obvious candidates for steps in your script,
-you may include any type of [Enigo Token](https://docs.rs/enigo/0.3.0/enigo/agent/enum.Token.html). For example:
+you may include any type of [Enigo Token](https://docs.rs/enigo/0.5.*/enigo/agent/enum.Token.html). For example:
 ```ron
 KeyBinding(
     m: 2,
