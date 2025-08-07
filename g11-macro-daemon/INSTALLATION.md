@@ -11,7 +11,8 @@ Others ought to work just fine, so long as you can locate the respective package
 ### Debian
 Tested on Linux Mint 22.1 (Ubuntu 24.04):
 ```bash
-sudo apt install cargo libudev-dev
+sudo apt install rustup libudev-dev
+rustup default stable
 ```
 
 ### Fedora
@@ -74,6 +75,10 @@ it makes more sense to run this as a daemon.
 
 
 ## Appendix: Troubleshooting
+* If your version of Rust is too old, yet is not convenient for you to upgrade, you may try installing an older version of the daemon:
+  ```bash
+  cargo install g11-macro-daemon --version '0.1.*'
+  ```
 * You can check the status of the service by running:
   ```bash
   systemctl --user status g11-macro-daemon

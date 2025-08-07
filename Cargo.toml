@@ -1,14 +1,14 @@
 [workspace.package]
 version = "0.1.1"
-edition = "2021"
-rust-version = "1.77"
+edition = "2024"
+rust-version = "1.85.1"
 repository = "https://github.com/rs017991/g11-macro"
 authors = ["Ryan Scheidter <ryan.scheidter@gmail.com>"]
 keywords = ["g11", "logitech", "keyboard"]
 license = "MIT"
 
 [workspace]
-resolver = "2"
+resolver = "3"
 members = [
 	# Library
 	"g11-macro-keys",
@@ -20,7 +20,7 @@ members = [
 
 [workspace.dependencies]
 hidapi = "2.6"
-enigo = { version = "0.3.*", default-features = false }
+enigo = { version = "0.5.*", default-features = false }
 xdg = "3.0"
 
 log = { version = "0.4.*" }
