@@ -3,14 +3,14 @@
 
 use std::{
     fs::File,
-    io::{self, Write},
-    path::PathBuf,
+    io::{self, Write, Read, BufRead, BufReader},
+    path::{PathBuf, Path},
 };
 use derive_more::{Display, Error};
 use enigo::{Direction, agent::Token};
 use log::warn;
 use serde::{Deserialize, Serialize};
-use ron::error::SpannedError;
+use ron::error::{Position, SpannedError};
 
 #[derive(Default, Debug, PartialEq, Deserialize, Serialize)]
 pub struct Config {
@@ -39,12 +39,7 @@ pub fn ensure_and_load_config_file() -> Result<Config, LoadError> {
 
     let key_bindings =
         if key_bindings_path.try_exists().map_err(LoadError::Locating)? {
-            let key_bindings_file =
-                File::open(&key_bindings_path)
-                    .map_err(|err| LoadError::Loading(key_bindings_path.clone(), err))?;
-            ron::Options::default()
-                .from_reader(key_bindings_file)
-                .map_err(|err| LoadError::unable_to_parse_or_load_config(key_bindings_path.clone(), err))?
+            try_load_key_bindings(&key_bindings_path, || File::open(&key_bindings_path), None, false)?
         } else { //Try to create a default file with instructions/samples
             File::create_new(&key_bindings_path)
                 .and_then(|mut file| file.write_all(include_bytes!("config_stub.ron")))
@@ -53,6 +48,59 @@ pub fn ensure_and_load_config_file() -> Result<Config, LoadError> {
         };
 
     Ok(Config { key_bindings })
+}
+
+/// Parse a key bindings file, being tolerant of one or both of the outer list brackets being absent
+/// TODO This is pretty hacky and gross. Would be more appropriate to just write a parser.
+fn try_load_key_bindings<R: Read>(
+    key_bindings_path: &Path,
+    key_bindings_file: impl Fn() -> io::Result<R>,
+    replace_missing_open_bracket: Option<Position>,
+    replace_missing_close_bracket: bool,
+) -> Result<Vec<KeyBinding>, LoadError> {
+    let mut outer_buf = String::new(); //Not terribly clean, but ensures that we don't run afoul of lifetimes.
+    let reader: Box<dyn Read> = {
+        let mut reader: Box<dyn Read> =
+            key_bindings_file()
+                .map(Box::new)
+                .map_err(|err| LoadError::Loading(key_bindings_path.into(), err))?;
+
+        if let Some(missing_open_bracket_pos) = replace_missing_open_bracket {
+            let mut lines = BufReader::new(reader).lines();
+            for line in lines.by_ref().take(missing_open_bracket_pos.line - 1) {
+                outer_buf.push_str(&line.map_err(|err| LoadError::Loading(key_bindings_path.into(), err))?);
+                outer_buf.push('\n');
+            }
+            outer_buf.push_str("\n[\n");
+            for line in lines {
+                outer_buf.push_str(&line.map_err(|err| LoadError::Loading(key_bindings_path.into(), err))?);
+                outer_buf.push('\n');
+            }
+            reader = Box::new(BufReader::new(outer_buf.as_bytes()));
+        }
+
+        if replace_missing_close_bracket {
+            reader = Box::new(reader.chain(BufReader::new(&b"\n]\n"[..])));
+        }
+
+        reader
+    };
+
+    ron::Options::default()
+        .from_reader(reader)
+        .or_else(|err| match (&err.code, replace_missing_open_bracket, replace_missing_close_bracket) {
+            (ron::Error::ExpectedArray, None, false) => {
+                warn!("Possibly missing the open bracket in {}; will attempt a more lenient parse, but you should fix the file.", key_bindings_path.display());
+                try_load_key_bindings(key_bindings_path, key_bindings_file, Some(err.position), false)
+                    .map_err(|_| LoadError::unable_to_parse_or_load_config(key_bindings_path.into(), err)) //If tolerant parse fails, just return the original error
+            }
+            (ron::Error::ExpectedStructName(name), _, false) if name == "KeyBinding" => {
+                warn!("Possibly missing the close bracket in {}; will attempt a more lenient parse, but you should fix the file.", key_bindings_path.display());
+                try_load_key_bindings(key_bindings_path, key_bindings_file, replace_missing_open_bracket, true)
+                    .map_err(|_| LoadError::unable_to_parse_or_load_config(key_bindings_path.into(), err)) //If tolerant parse fails, just return the original error
+            }
+            _ => Err(LoadError::unable_to_parse_or_load_config(key_bindings_path.into(), err))
+        })
 }
 
 #[derive(Debug, Display, Error)]
@@ -77,11 +125,16 @@ impl LoadError {
 
 #[cfg(test)]
 mod tests {
+    use test_log::test;
     use enigo::Direction::*;
     use super::*;
 
-    #[test]
-    fn parses_correctly() {
+    #[test] fn tolerant_of_missing_open_bracket(){ parses_correctly(true, false, false); }
+    #[test] fn tolerant_of_missing_close_bracket(){ parses_correctly(false, true, false); }
+    #[test] fn tolerant_of_missing_brackets(){ parses_correctly(true, true, false); }
+    #[test] fn tolerant_of_missing_extensions(){ parses_correctly(false, false, true); }
+    #[test] fn parses_correctly_when_valid() { parses_correctly(false, false, false); }
+    fn parses_correctly(missing_open_bracket: bool, missing_close_bracket: bool, missing_extensions: bool) {
         let config = Config {
             key_bindings: vec![
                 KeyBinding {
@@ -107,9 +160,9 @@ mod tests {
             ],
         };
 
-        let parsed = ron::from_str::<Vec<KeyBinding>>(r"
-            #![enable(explicit_struct_names, implicit_some)]
-            [
+        let input = format!(r"
+            {extensions}
+            {open}
                 KeyBinding(
                     m: 1,
                     g: 1,
@@ -130,8 +183,12 @@ mod tests {
                         Key(Control, Release),
                     ],
                 ),
-            ]
-        ").expect("does not fail to parse");
+            {close}
+        ", open = if missing_open_bracket { "" } else { "[" }, close = if missing_close_bracket { "" } else { "]" },
+           extensions = if missing_extensions { "" } else { "#![enable(explicit_struct_names, implicit_some)]" },
+        );
+
+        let parsed = try_load_key_bindings(Path::new("n/a"), || Ok(BufReader::new(input.as_bytes())), None, false).expect("does not fail to parse");
 
         assert_eq!(parsed, config.key_bindings);
     }

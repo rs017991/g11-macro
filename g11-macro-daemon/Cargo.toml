@@ -26,3 +26,7 @@ ron.workspace = true
 
 smallvec.workspace = true
 derive_more = { workspace = true, features = ["error"] }
+
+
+[dev-dependencies]
+test-log.workspace = true
