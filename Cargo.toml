@@ -5,6 +5,7 @@ rust-version = "1.85.1"
 repository = "https://github.com/rs017991/g11-macro"
 authors = ["Ryan Scheidter <ryan.scheidter@gmail.com>"]
 keywords = ["g11", "logitech", "keyboard"]
+categories = ["hardware-support"]
 license = "MIT"
 
 [workspace]

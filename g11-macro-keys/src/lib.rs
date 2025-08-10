@@ -1,3 +1,5 @@
+#![doc = include_str!("../README.md")]
+
 use std::mem;
 use derive_more::{Display, Error};
 
@@ -56,9 +58,10 @@ pub struct Event {
 #[derive(Default, Debug, Clone)]
 pub struct State(multikey::MultiKey, Option<led::Led>);
 impl State {
-    pub fn new() -> Self { Self::default() }
+    #[must_use] pub fn new() -> Self { Self::default() }
 
     /// Returns `true` if the given [`Key`] is known to be currently pressed, `false` otherwise
+    #[must_use]
     pub fn is_pressed(&self, key: Key) -> bool {
         match multikey::MultiKey::try_from(key) {
             Ok(multi) => self.0.contains(multi),
@@ -110,6 +113,7 @@ impl State {
     /// that will cause only the given [`Key`] LEDs to be lit (and all others unlit).
     ///
     /// Will return `None` if the request would be fruitless (if these exact LEDs are already lit)
+    #[must_use]
     pub fn set_exact_lit_leds(&mut self, lit_keys: &[Key]) -> Option<[u8; 4]> {
         self.set_exact_lit_leds_if_changed(
             lit_keys.iter()
@@ -123,6 +127,7 @@ impl State {
     /// that will cause the given [`Key`] LED to transition from unlit to lit, leaving all other LEDs alone.
     ///
     /// Will return `None` if the request would be fruitless (if the LED is already lit or a key with no LED is passed)
+    #[must_use]
     pub fn light_led(&mut self, key: Key) -> Option<[u8; 4]> {
         led::Led::try_from(key).ok()
             .map(|new| self.1.map_or(new, |current | current | new))
@@ -133,6 +138,7 @@ impl State {
     /// that will cause the given [`Key`] LED to transition from lit to unlit, leaving all other LEDs alone.
     ///
     /// Will return `None` if the request would be fruitless (if the LED is already unlit or a key with no LED is passed)
+    #[must_use]
     pub fn extinguish_led(&mut self, key: Key) -> Option<[u8; 4]> {
         led::Led::try_from(key).ok()
             .and_then(|old| self.1.map(|current| current & !old))
@@ -173,7 +179,7 @@ pub struct UnrecognizedKey;
 mod tests {
     use super::*;
 
-    /// https://rust-lang.github.io/api-guidelines/interoperability.html#types-are-send-and-sync-where-possible-c-send-sync
+    /// <https://rust-lang.github.io/api-guidelines/interoperability.html#types-are-send-and-sync-where-possible-c-send-sync>
     mod auto_trait_regression {
         use super::*;
 

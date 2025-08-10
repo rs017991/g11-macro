@@ -11,7 +11,7 @@ The macro keys interface covers:
 * 3 'M' keys - _each has its own LED_
 * 1 'MR' key - _has its own LED_
 * 1 Backlight key
-```
+```text
   (M1) (M2) (M3)  (MR)   ...   (💡)
 
  ┌───┐┌───┐┌───┐

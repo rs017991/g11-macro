@@ -29,11 +29,15 @@ pub struct KeyBinding {
     pub script: Vec<Token>,
 }
 
-pub fn ensure_and_load_config_file() -> Result<Config, LoadError> {
-    let app_config_dir = xdg::BaseDirectories::with_prefix("g11-macro-daemon");
-    let key_bindings_path = app_config_dir.place_config_file("key_bindings.ron").map_err(LoadError::Locating)?;
+pub const XDG_PREFIX: &str = "g11-macro-daemon";
+pub const XDG_CONFIG_KEY_BINDINGS: &str = "key_bindings.ron";
 
-    let key_bindings = {
+/// Loads the [`XDG_CONFIG_KEY_BINDINGS`] file, creating an empty stub if it does not yet exist.
+pub fn ensure_and_load_config_file() -> Result<Config, LoadError> {
+    let app_config_dir = xdg::BaseDirectories::with_prefix(XDG_PREFIX);
+    let key_bindings_path = app_config_dir.place_config_file(XDG_CONFIG_KEY_BINDINGS).map_err(LoadError::Locating)?;
+
+    let key_bindings =
         if key_bindings_path.try_exists().map_err(LoadError::Locating)? {
             let key_bindings_file =
                 File::open(&key_bindings_path)
@@ -46,8 +50,7 @@ pub fn ensure_and_load_config_file() -> Result<Config, LoadError> {
                 .and_then(|mut file| file.write_all(include_bytes!("config_stub.ron")))
                 .inspect_err(|err| warn!("Failed to create stub for key bindings file: {}. Ignoring...\n\tCause: {err:#?}", key_bindings_path.display()))
                 .map_or_else(|_| vec![], |_| vec![])
-        }
-    };
+        };
 
     Ok(Config { key_bindings })
 }
@@ -104,7 +107,7 @@ mod tests {
             ],
         };
 
-        let parsed = ron::from_str::<Vec<KeyBinding>>(r#"
+        let parsed = ron::from_str::<Vec<KeyBinding>>(r"
             #![enable(explicit_struct_names, implicit_some)]
             [
                 KeyBinding(
@@ -128,7 +131,7 @@ mod tests {
                     ],
                 ),
             ]
-        "#).expect("does not fail to parse");
+        ").expect("does not fail to parse");
 
         assert_eq!(parsed, config.key_bindings);
     }

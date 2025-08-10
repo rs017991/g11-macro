@@ -53,7 +53,7 @@ impl BindingBanks {
             (None, _) => warn!("Ignoring invalid KeyBinding (there is no M{} key)", binding.m),
             (Some(bank_index), Direction::Press) => self.press_banks[bank_index].replace(binding),
             (Some(bank_index), _) => self.ensure_release_bank(bank_index).replace(binding),
-        };
+        }
     }
     fn ensure_release_bank(&mut self, bank_index: usize) -> &mut BindingBank {
         if bank_index >= self.release_banks.len() {

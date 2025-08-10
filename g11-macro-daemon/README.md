@@ -28,7 +28,7 @@ The macro keys interface covers:
 * 3 'M' keys that operate as banks for the 'G' keys (allowing for 54 total macros) - _each has its own LED_
 * 1 'MR' key that allowed macros to be recorded on the fly - _has its own LED_
 * 1 Backlight key that has nothing to do with macros but runs on the same interface
-```
+```text
   (M1) (M2) (M3)  (MR)   ...   (💡)
 
  ┌───┐┌───┐┌───┐
