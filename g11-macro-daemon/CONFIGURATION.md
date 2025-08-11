@@ -66,6 +66,26 @@ KeyBinding(
 ```
 
 
+## Recording macros
+Steps for recording a macro:
+1. Ensure that you have the desired 'M' bank selected (and see its LED lit) before you begin.
+2. Press the 'MR' key to begin the recording mode.
+   * The 'MR' key will light up solid blue to let you know that it is time to choose a 'G' key.
+   * You may cancel recording mode by pressing the 'MR' key again.
+3. Press a 'G' key to indicate where the macro will be saved
+   * The 'MR' key will begin blinking blue to let you know that it is recording
+4. Perform any number of regular keyboard interactions that will be used as the script
+5. Press the 'MR' key to stop recording
+   * The 'MR' key LED will turn off, letting you know that you are no longer in recording mode
+   * The new binding is immediately ready for use, and has also been saved to disk so that it applies to future reboots.
+
+How these are saved on disk:
+* Recorded macros get saved to a separate `key_recordings.ron` file in the same directory as your static config.
+  * This is to ensure that you have total control over your `key_bindings.ron` (will never be overwritten, unlike `key_recordings.ron`)
+* `key_recordings.ron` takes precedence over `key_bindings.ron`, so while you may record new macros that are used instead of your static config, you will never lose the originals.
+* You should avoid editing `key_recordings.ron`, except perhaps to move its recorded macro definitions into your `key_bindings.ron` once you are happy with them.
+
+
 ## Appendix: Troubleshooting
 * You can check the status of the service by running:
   ```bash
@@ -82,3 +102,5 @@ KeyBinding(
 * Tip: If you are working through problems with your bindings,
   it may be more convenient to execute the binary directly at `~/.cargo/bin/g11-macro-daemon` in your terminal foreground,
   rather than constantly restarting the service and having to pull up the logs.
+* If you are trying to record a macro and the 'MR' key LED goes out as soon as you choose a 'G' key,
+  then you are likely missing [one of the udev rules](INSTALLATION.md#1-device-permissions).

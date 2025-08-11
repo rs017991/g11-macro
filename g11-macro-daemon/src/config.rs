@@ -10,7 +10,11 @@ use derive_more::{Display, Error};
 use enigo::Direction;
 use log::warn;
 use serde::{Deserialize, Serialize};
-use ron::error::{Position, SpannedError};
+use ron::{
+    error::{Position, SpannedError},
+    extensions::Extensions,
+    ser::PrettyConfig,
+};
 use crate::steps::Step;
 
 #[derive(Default, Debug, PartialEq, Deserialize, Serialize)]
@@ -18,7 +22,7 @@ pub struct Config {
     pub key_bindings: Vec<KeyBinding>,
 }
 
-#[derive(Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct KeyBinding {
     /// The `M` key (numbered `1 ..= 3`) whose bank must be active for this binding to apply
     pub m: u8,
@@ -32,13 +36,15 @@ pub struct KeyBinding {
 
 pub const XDG_PREFIX: &str = "g11-macro-daemon";
 pub const XDG_CONFIG_KEY_BINDINGS: &str = "key_bindings.ron";
+pub const XDG_CONFIG_KEY_RECORDINGS: &str = "key_recordings.ron";
 
 /// Loads the [`XDG_CONFIG_KEY_BINDINGS`] file, creating an empty stub if it does not yet exist.
 pub fn ensure_and_load_config_file() -> Result<Config, LoadError> {
     let app_config_dir = xdg::BaseDirectories::with_prefix(XDG_PREFIX);
     let key_bindings_path = app_config_dir.place_config_file(XDG_CONFIG_KEY_BINDINGS).map_err(LoadError::Locating)?;
+    let key_recordings_path = app_config_dir.find_config_file(XDG_CONFIG_KEY_RECORDINGS);
 
-    let key_bindings =
+    let mut key_bindings =
         if key_bindings_path.try_exists().map_err(LoadError::Locating)? {
             try_load_key_bindings(&key_bindings_path, || File::open(&key_bindings_path), None, false)?
         } else { //Try to create a default file with instructions/samples
@@ -47,6 +53,12 @@ pub fn ensure_and_load_config_file() -> Result<Config, LoadError> {
                 .inspect_err(|err| warn!("Failed to create stub for key bindings file: {}. Ignoring...\n\tCause: {err:#?}", key_bindings_path.display()))
                 .map_or_else(|_| vec![], |_| vec![])
         };
+
+    if let Some(key_recordings_path) = key_recordings_path {
+        key_bindings.extend(
+            try_load_key_bindings(&key_recordings_path, || File::open(&key_recordings_path), None, false)?
+        );
+    }
 
     Ok(Config { key_bindings })
 }
@@ -104,6 +116,51 @@ fn try_load_key_bindings<R: Read>(
         })
 }
 
+/// Creates/rewrites the [`XDG_CONFIG_KEY_RECORDINGS`] file, adding the given binding.
+/// If an existing binding exists with the same coordinates, then it will be replaced.
+/// Otherwise, the new binding will be appended to the list.
+pub fn save_recorded_macro(mut new_key_binding: KeyBinding) -> Result<(), SaveRecordedMacroError> {
+    let ron = ron::Options::default().with_default_extension(Extensions::IMPLICIT_SOME | Extensions::EXPLICIT_STRUCT_NAMES);
+    let app_config_dir = xdg::BaseDirectories::with_prefix(XDG_PREFIX);
+    let key_recordings_path = app_config_dir.place_config_file(XDG_CONFIG_KEY_RECORDINGS)
+        .map_err(LoadError::Locating).map_err(SaveRecordedMacroError::Loading)?;
+
+    let mut key_bindings: Vec<KeyBinding> =
+        if key_recordings_path.try_exists().map_err(LoadError::Locating).map_err(SaveRecordedMacroError::Loading)? {
+            let key_recordings_file =
+                File::open(&key_recordings_path)
+                    .map_err(|err| LoadError::Loading(key_recordings_path.clone(), err)).map_err(SaveRecordedMacroError::Loading)?;
+            ron.from_reader(key_recordings_file)
+                .map_err(|err| LoadError::unable_to_parse_or_load_config(key_recordings_path.clone(), err)).map_err(SaveRecordedMacroError::Loading)?
+        }
+        else { vec![] };
+
+    let existing_key_binding =
+        key_bindings.iter_mut().rfind(|existing|
+            existing.g == new_key_binding.g &&
+            existing.m == new_key_binding.m &&
+            existing.on == new_key_binding.on
+        );
+
+    if let Some(existing_key_binding) = existing_key_binding {
+        std::mem::swap(&mut existing_key_binding.script, &mut new_key_binding.script);
+    }
+    else {
+        key_bindings.push(new_key_binding);
+    }
+
+    File::create(&key_recordings_path)
+        .and_then(|mut key_recordings_file| {
+            key_recordings_file.write_all(include_bytes!("config_stub_record.ron"))?;
+            Ok(key_recordings_file)
+        })
+        .and_then(|key_recordings_file|
+            ron.to_io_writer_pretty(key_recordings_file, &key_bindings, PrettyConfig::default())
+                .map_err(io::Error::other)
+        )
+        .map_err(|err| SaveRecordedMacroError::Saving(key_recordings_path.clone(), err))
+}
+
 #[derive(Debug, Display, Error)]
 pub enum LoadError {
     #[display("Unable to locate the config file! Cause: {_0}")]
@@ -121,6 +178,14 @@ impl LoadError {
             Self::Parsing(path, ron_err)
         }
     }
+}
+
+#[derive(Debug, Display, Error)]
+pub enum SaveRecordedMacroError {
+    #[display("Unable to load the existing recordings file! Cause: {_0}")]
+    Loading(LoadError),
+    #[display("Unable to save the recorded macro to {}! Cause: {_1}", _0.display())]
+    Saving(PathBuf, io::Error),
 }
 
 

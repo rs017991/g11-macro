@@ -9,9 +9,9 @@ They already work fine in Linux and are not of interest here.
 * Reads macro definitions from a user-owned config file
 * When a 'G' key is pressed, will execute the associated macro (if configured)
 * Supports banking with the 'M' keys, with LED feedback
+* The 'MR' key can be used for recording macros on the fly
 
 ### Not supported _(yet?)_
-* The 'MR' key for recording macros on the fly. (I hardly used this feature in Windows; will add if requested)
 * Any kind of GUI for configuring the macros
 
 ### G15 Support
@@ -26,7 +26,7 @@ So this application might work for that too, but I have no way of testing this. 
 The macro keys interface covers:
 * 18 programmable 'G' keys
 * 3 'M' keys that operate as banks for the 'G' keys (allowing for 54 total macros) - _each has its own LED_
-* 1 'MR' key that allowed macros to be recorded on the fly - _has its own LED_
+* 1 'MR' key that allows macros to be recorded on the fly - _has its own LED_
 * 1 Backlight key that has nothing to do with macros but runs on the same interface
 ```text
   (M1) (M2) (M3)  (MR)   ...   (💡)

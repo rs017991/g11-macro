@@ -9,8 +9,14 @@ pub mod usb_id {
     /// USB VID for Logitech
     pub const VENDOR_LOGITECH: u16 = 0x46d;
 
-    /// USB PID for a G11 Keyboard
-    pub const PRODUCT_G11: u16 = 0xc225;
+    /// USB PID for the macro key interface on a G11 Keyboard
+    pub const PRODUCT_G11_MACRO: u16 = 0xc225;
+
+    #[deprecated = "renamed to `PRODUCT_G11_MACRO`"]
+    pub const PRODUCT_G11: u16 = PRODUCT_G11_MACRO;
+
+    /// USB PID for the regular (104-key) interface on a G11 Keyboard
+    pub const PRODUCT_G11_STANDARD: u16 = 0xc221;
 }
 
 mod multikey;

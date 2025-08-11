@@ -27,6 +27,9 @@ To be able to interact with an HID device, you must create a `udev` rule:
 1. Create a file within `/etc/udev/rules.d` (can be named anything ending with `.rules`) with the following contents:
    ```udev
    SUBSYSTEM=="hidraw", ATTRS{idVendor}=="046d", ATTRS{idProduct}=="c225", MODE="0666", ACTION=="add", TAG+="systemd", ENV{SYSTEMD_USER_WANTS}+="g11-macro-daemon.service"
+   
+   #The following rule is only necessary if you want to be able to record macros with the `MR` key:
+   SUBSYSTEM=="hidraw", ATTRS{idVendor}=="046d", ATTRS{idProduct}=="c221", MODE="0666"
    ```
 2. In a terminal, run:
    ```bash
