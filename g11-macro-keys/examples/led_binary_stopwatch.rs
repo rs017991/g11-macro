@@ -22,7 +22,7 @@ use g11_macro_keys::{usb_id, Event, Key, Action::Pressed};
 /// 2. In a terminal, run `sudo udevadm control --reload-rules && sudo udevadm trigger`
 fn main() {
     let api = HidApi::new().expect("can acquire HID API");
-    let hid = api.open(usb_id::VENDOR_LOGITECH, usb_id::PRODUCT_G11).expect("can open device");
+    let hid = api.open(usb_id::VENDOR_LOGITECH, usb_id::PRODUCT_G11_MACRO).expect("can open device");
     let mut key_state = g11_macro_keys::State::default();
     let mut usb_buf = [0_u8; 9];
 

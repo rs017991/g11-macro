@@ -1,5 +1,6 @@
 mod config;
 mod bindings;
+mod record;
 mod steps;
 
 use enigo::{Enigo, Settings};
@@ -16,7 +17,7 @@ fn main() {
     let api = HidApi::new().expect("Unable to acquire HID API");
     let mut enigo = Enigo::new(&Settings::default()).expect("Unable to acquire Enigo API");
 
-    let hid = api.open(usb_id::VENDOR_LOGITECH, usb_id::PRODUCT_G11).expect("Unable to open device");
+    let hid = api.open(usb_id::VENDOR_LOGITECH, usb_id::PRODUCT_G11_MACRO).expect("Unable to open device");
     let mut usb_buf = [0_u8; 9];
     let mut state = g11_macro_keys::State::default();
 
@@ -34,6 +35,12 @@ fn main() {
                         .inspect_err(|err| error!("Unable to update LEDs! Cause: {err:#?}"));
                 }
             }
+            Ok(Event { action: Action::Released, key: g11_macro_keys::Key::MR }) =>
+                if let Some(new_binding) = record::run_event_loop(&api, &hid, &mut state, binding_banks.active_bank()) {
+                    binding_banks.replace(new_binding.clone());
+                    let _ = config::save_recorded_macro(new_binding) //TODO Really ought to do these disk operations in a separate thread.
+                        .inspect_err(|err| error!("Unable to save recorded macro! Cause: {err:#?}"));
+                },
             Ok(event) =>
                 if let Some(script) = binding_banks.script_for(event) {
                     for step in script {

@@ -1,0 +1,12 @@
+#![enable(explicit_struct_names, implicit_some)]
+/* NOTICE:
+   This file is automatically rewritten every time a new macro is recorded.
+   (if you put comments in this file, they will disappear)
+
+   You should add your bindings to key_bindings.ron, not this one.
+   If you choose to edit this file, consider limiting such actions to deleting or moving bindings to key_bindings.ron.
+
+   See https://github.com/rs017991/g11-macro/blob/main/g11-macro-daemon/CONFIGURATION.md for more information.
+*/
+
+

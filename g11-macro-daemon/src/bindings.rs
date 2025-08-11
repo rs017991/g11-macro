@@ -42,13 +42,16 @@ impl BindingBanks {
 
     }
 
+    /// Returns the M Key (`1..=3`) whose bindings will be used
+    pub fn active_bank(&self) -> u8 { self.active_bank + 1 }
+
     fn bank_index(m_key: u8) -> Option<usize> {
         match m_key {
             0 | 4.. => None,
             _ => Some(m_key as usize - 1),
         }
     }
-    fn replace(&mut self, binding: KeyBinding) {
+    pub fn replace(&mut self, binding: KeyBinding) {
         match (Self::bank_index(binding.m), binding.on) {
             (None, _) => warn!("Ignoring invalid KeyBinding (there is no M{} key)", binding.m),
             (Some(bank_index), Direction::Press) => self.press_banks[bank_index].replace(binding),
