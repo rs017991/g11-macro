@@ -58,6 +58,7 @@ it makes more sense to run this as a daemon.
    
    [Service]
    ExecStart=/home/<your userid>/.cargo/bin/g11-macro-daemon
+   Environment="RUST_LOG=WARN,g11=INFO"
    Restart=always
    ```
 2. In a terminal, run:
