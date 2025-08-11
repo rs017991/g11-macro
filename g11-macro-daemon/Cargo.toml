@@ -12,7 +12,7 @@ license.workspace = true
 
 
 [dependencies]
-g11-macro-keys = { version = "0.2.*", path = "../g11-macro-keys" }
+g11-macro-keys = { version = "0.3.*", path = "../g11-macro-keys" }
 
 hidapi.workspace = true
 enigo = { workspace = true, default-features = false, features = ["x11rb", "serde"] }
