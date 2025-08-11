@@ -1,7 +1,8 @@
 mod config;
 mod bindings;
+mod steps;
 
-use enigo::{Enigo, Settings, agent::Agent};
+use enigo::{Enigo, Settings};
 use hidapi::HidApi;
 use log::error;
 use g11_macro_keys::{usb_id, Action, Event};
@@ -36,7 +37,7 @@ fn main() {
             Ok(event) =>
                 if let Some(script) = binding_banks.script_for(event) {
                     for step in script {
-                        let _ = enigo.execute(step)
+                        let _ = step.execute(&mut enigo)
                             .inspect_err(|err| error!("Unable to execute {step:?}! Cause: {err:#?}"));
                     }
                 },

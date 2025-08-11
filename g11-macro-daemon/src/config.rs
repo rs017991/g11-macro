@@ -7,10 +7,11 @@ use std::{
     path::{PathBuf, Path},
 };
 use derive_more::{Display, Error};
-use enigo::{Direction, agent::Token};
+use enigo::Direction;
 use log::warn;
 use serde::{Deserialize, Serialize};
 use ron::error::{Position, SpannedError};
+use crate::steps::Step;
 
 #[derive(Default, Debug, PartialEq, Deserialize, Serialize)]
 pub struct Config {
@@ -26,7 +27,7 @@ pub struct KeyBinding {
     /// If set to `Press`, will run the script as soon as the key is pressed. Otherwise, it will wait for release.
     pub on: Direction,
     /// The sequence of steps to be executed
-    pub script: Vec<Token>,
+    pub script: Vec<Step>,
 }
 
 pub const XDG_PREFIX: &str = "g11-macro-daemon";
@@ -142,9 +143,9 @@ mod tests {
                     g: 1,
                     on: Press,
                     script: vec![
-                        Token::Key(enigo::Key::Control,      Press),
-                        Token::Key(enigo::Key::Unicode('-'), Click),
-                        Token::Key(enigo::Key::Control,      Release),
+                        Step::Key(enigo::Key::Control,      Press),
+                        Step::Key(enigo::Key::Unicode('-'), Click),
+                        Step::Key(enigo::Key::Control,      Release),
                     ],
                 },
                 KeyBinding {
@@ -152,9 +153,9 @@ mod tests {
                     g: 2,
                     on: Press,
                     script: vec![
-                        Token::Key(enigo::Key::Control,      Press),
-                        Token::Key(enigo::Key::Unicode('0'), Click),
-                        Token::Key(enigo::Key::Control,      Release),
+                        Step::Key(enigo::Key::Control,      Press),
+                        Step::Key(enigo::Key::Unicode('0'), Click),
+                        Step::Key(enigo::Key::Control,      Release),
                     ],
                 },
             ],

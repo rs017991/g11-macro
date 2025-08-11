@@ -35,7 +35,7 @@ KeyBinding(
 Note that when scripting modifier keys like Control/Shift/etc., you should include a step for each to be released at the end.
 
 While keystrokes are the most obvious candidates for steps in your script,
-you may include any type of [Enigo Token](https://docs.rs/enigo/0.5.*/enigo/agent/enum.Token.html). For example:
+you may include most types of [Enigo Token](https://docs.rs/enigo/0.5.*/enigo/agent/enum.Token.html). For example:
 ```ron
 KeyBinding(
     m: 2,
@@ -48,6 +48,23 @@ KeyBinding(
     ],
 ),
 ```
+
+You can also run a program as a step, with or without an arguments list.
+* One useful candidate for this is `xdg-open`, to which you can pass a local file/directory or url, and it will open it in a browser or whatever.
+* **IMPORTANT**: Any process spawned this way becomes a child of g11-macro-daemon, so if you restart the daemon, all child processes will be killed.
+* For example:
+```ron
+KeyBinding(
+    m: 3,
+    g: 2,
+    on: Press,
+    script: [
+        Run(Program("gnome-calculator")),
+        Run(Program("xdg-open", ["https://www.spacejam.com/1996"])),
+    ],
+),
+```
+
 
 ## Appendix: Troubleshooting
 * You can check the status of the service by running:

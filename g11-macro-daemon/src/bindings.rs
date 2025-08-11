@@ -4,7 +4,7 @@ use enigo::Direction;
 use log::warn;
 use smallvec::SmallVec;
 use g11_macro_keys::{Action, Event, Key};
-use crate::config::KeyBinding;
+use crate::{config::KeyBinding, steps::Step};
 
 pub struct BindingBanks {
     /// Zero-indexed (respective M key minus one)
@@ -31,7 +31,7 @@ impl BindingBanks {
         }
     }
 
-    pub fn script_for(&self, g_key_event: Event) -> Option<impl IntoIterator<Item = &enigo::agent::Token>> {
+    pub fn script_for(&self, g_key_event: Event) -> Option<impl IntoIterator<Item = &Step>> {
         match g_key_event {
             Event { key: Key::G(g_key), action: Action::Pressed } =>
                 self.press_banks[self.active_bank as usize].script_for(g_key),
@@ -64,7 +64,7 @@ impl BindingBanks {
 }
 
 /// Optimised for the typical binding: a one-modifier click
-pub type Script = SmallVec<[enigo::agent::Token; 3]>;
+pub type Script = SmallVec<[Step; 3]>;
 
 /// All G-key mappings under a specific M-key.
 /// Zero-indexed (respective G key minus one)
